@@ -26,6 +26,7 @@ const LoginNew = () => {
     };
 
     const handleSubmit = async (e) => {
+        console.log('handleSubmit triggered. Email:', email, 'Password:', password);
         e.preventDefault();
         setIsLoading(true);
         setError('');
@@ -84,11 +85,13 @@ const LoginNew = () => {
     }, [email, password, error]);
 
     const handleEmailChange = (e) => {
+        console.log('Email changed:', e.target.value);
         setEmail(e.target.value);
         if (!emailTouched) setEmailTouched(true);
     };
 
     const handlePasswordChange = (e) => {
+        console.log('Password changed:', e.target.value);
         setPassword(e.target.value);
         if (!passwordTouched) setPasswordTouched(true);
     };
@@ -122,6 +125,7 @@ const LoginNew = () => {
         return className;
     };
 
+    console.log('Rendering LoginNew component. State:', { email, password, isLoading });
     return (
         <div className="login-container">
             <div className="login-form-container">
