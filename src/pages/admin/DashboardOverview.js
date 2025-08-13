@@ -1,28 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import adminService from '../../services/adminService';
 import { useAuth } from '../../context/AuthContext';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import '../../styles/DashboardOverview.css';
+const API_URL = process.env.REACT_APP_API_URL;
 
 const DashboardOverview = () => {
     const { user } = useAuth();
     const [stats, setStats] = useState(null);
+    const [confirmedStudents, setConfirmedStudents] = useState([]);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const API_URL = process.env.REACT_APP_API_URL;
-
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchData = async () => {
             if (user && user.role !== 'admin') {
                 setError('You are not authorized to view this page.');
                 return;
             }
             setIsLoading(true);
             try {
-                const response = await axios.get(`${API_URL}admin/statistics/`);
-                setStats(response.data);
+                const [statsResponse, studentsResponse] = await Promise.all([
+                    adminService.getDashboardStats(),
+                    adminService.getConfirmedStudents(),
+                ]);
+                setStats(statsResponse.data);
+                setConfirmedStudents(studentsResponse.data);
             } catch (err) {
-                let errorMessage = 'Failed to fetch statistics.';
+                let errorMessage = 'Failed to fetch data.';
                 if (err.response) {
                     errorMessage += ` Server responded with status ${err.response.status}.`;
                     console.error('Error data:', err.response.data);
@@ -40,15 +45,15 @@ const DashboardOverview = () => {
             }
         };
 
-        fetchStats();
+        fetchData();
     }, [API_URL, user]);
 
     return (
         <div className="dashboard-overview">
             <h1>Admin Dashboard Overview</h1>
-            {isLoading && <p>Loading statistics...</p>}
+            {isLoading && <LoadingSpinner />}
             {error && <p className="error-message">{error}</p>}
-            {stats && (
+            {stats && !isLoading && (
                 <div className="stats-container">
                     <div className="stat-card">
                         <h3>Total Users</h3>
@@ -62,9 +67,39 @@ const DashboardOverview = () => {
                         <h3>Total Opportunities</h3>
                         <p>{stats.total_opportunities}</p>
                     </div>
-                    {/* Add more stat cards as needed */}
+                    <div className="stat-card">
+                        <h3>Total Confirmations</h3>
+                        <p>{stats.total_confirmations}</p>
+                    </div>
                 </div>
             )}
+            <div className="confirmed-students-container">
+                <h2>Confirmed Students</h2>
+                {confirmedStudents.length > 0 ? (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Full Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {confirmedStudents.map((student) => (
+                                <tr key={student.id}>
+                                    <td>{student.id}</td>
+                                    <td>{student.username}</td>
+                                    <td>{student.email}</td>
+                                    <td>{student.full_name}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p>No confirmed students found.</p>
+                )}
+            </div>
         </div>
     );
 };

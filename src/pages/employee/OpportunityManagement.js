@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import headService from '../../services/headService';
+import employeeService from '../../services/employeeService';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/Modal';
 import '../../styles/OpportunityManagement.css';
@@ -32,7 +32,7 @@ const OpportunityManagement = () => {
     const fetchOpportunities = async () => {
         setIsLoading(true);
         try {
-            const response = await headService.getOpportunities();
+            const response = await employeeService.getOpportunities();
             setOpportunities(response.data);
         } catch (err) {
             setError('Failed to fetch opportunities.');
@@ -46,7 +46,7 @@ const OpportunityManagement = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            await headService.createOpportunity({ ...newOpportunity, employee: user.id });
+            await employeeService.createOpportunity({ ...newOpportunity, employee: user.id });
             setNewOpportunity({
                 title: '',
                 opp_type: '',
@@ -74,7 +74,7 @@ const OpportunityManagement = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            await headService.updateOpportunity(editingOpportunity.id, { ...editingOpportunity, employee: user.id });
+            await employeeService.updateOpportunity(editingOpportunity.id, { ...editingOpportunity, employee: user.id });
             setEditingOpportunity(null);
             fetchOpportunities();
         } catch (err) {
@@ -88,7 +88,7 @@ const OpportunityManagement = () => {
     const handleDelete = async (id) => {
         setIsLoading(true);
         try {
-            await headService.deleteOpportunity(id);
+            await employeeService.deleteOpportunity(id);
             fetchOpportunities();
         } catch (err) {
             setError('Failed to delete opportunity.');
@@ -109,7 +109,7 @@ const OpportunityManagement = () => {
 
     return (
         <div className="opportunity-management-container">
-            <h1>Head Opportunity Management</h1>
+            <h1>Employee Opportunity Management</h1>
             {error && <p className="error-message">{error}</p>}
 
             <Modal

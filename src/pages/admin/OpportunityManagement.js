@@ -1,31 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import Modal from '../../components/Modal';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import adminService from '../../services/adminService';
+import EditIcon from '../../components/EditIcon';
+import DeleteIcon from '../../components/DeleteIcon';
 import '../../styles/OpportunityManagement.css';
 
 const OpportunityManagement = () => {
     const [opportunities, setOpportunities] = useState([]);
     const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [editingOpportunity, setEditingOpportunity] = useState(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [newOpportunity, setNewOpportunity] = useState({
         title: '',
-        opp_type: '',
-        organization: '',
         description: '',
-        location: '',
-        duration: '',
-        deadline: '',
-        requirements: '',
-        benefits: '',
-        contact_email: '',
-        app_url: '',
-        application_process: '',
+        link: '',
+        department: '',
     });
-    const { user } = useAuth();
-
-    const API_URL = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
         fetchOpportunities();
@@ -34,7 +27,7 @@ const OpportunityManagement = () => {
     const fetchOpportunities = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${API_URL}opportunities/`);
+            const response = await adminService.getAllOpportunities();
             setOpportunities(response.data);
         } catch (err) {
             setError('Failed to fetch opportunities.');
@@ -44,60 +37,77 @@ const OpportunityManagement = () => {
         }
     };
 
-    const handleCreate = async (e) => {
-        e.preventDefault();
+    const handleCreate = async () => {
         setIsLoading(true);
         try {
-            await axios.post(`${API_URL}opportunities/`, { ...newOpportunity, employee: user.id });
+            await adminService.createOpportunity(newOpportunity);
             setNewOpportunity({
                 title: '',
-                opp_type: '',
-                organization: '',
                 description: '',
-                location: '',
-                duration: '',
-                deadline: '',
-                requirements: '',
-                benefits: '',
-                contact_email: '',
-                app_url: '',
-                application_process: '',
+                link: '',
+                department: '',
             });
+            setShowCreateModal(false);
             fetchOpportunities();
+            Swal.fire('Success!', 'Opportunity created successfully.', 'success');
         } catch (err) {
             setError('Failed to create opportunity.');
             console.error(err);
+            Swal.fire('Error!', 'Failed to create opportunity.', 'error');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleUpdate = async (e) => {
-        e.preventDefault();
+    const handleUpdate = async () => {
         setIsLoading(true);
         try {
-            await axios.put(`${API_URL}opportunities/${editingOpportunity.id}/`, { ...editingOpportunity, employee: user.id });
+            await adminService.updateOpportunity(editingOpportunity.id, editingOpportunity);
             setEditingOpportunity(null);
             fetchOpportunities();
+            Swal.fire('Success!', 'Opportunity updated successfully.', 'success');
         } catch (err) {
             setError('Failed to update opportunity.');
             console.error(err);
+            Swal.fire('Error!', 'Failed to update opportunity.', 'error');
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
-        setIsLoading(true);
-        try {
-            await axios.delete(`${API_URL}opportunities/${id}/`);
-            fetchOpportunities();
-        } catch (err) {
-            setError('Failed to delete opportunity.');
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                setIsLoading(true);
+                try {
+                    await adminService.deleteOpportunity(id);
+                    fetchOpportunities();
+                    Swal.fire(
+                        'Deleted!',
+                        'The opportunity has been deleted.',
+                        'success'
+                    );
+                } catch (err) {
+                    setError('Failed to delete opportunity.');
+                    console.error(err);
+                    Swal.fire(
+                        'Error!',
+                        'Failed to delete opportunity.',
+                        'error'
+                    );
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        });
     };
 
     const handleInputChange = (e, formType) => {
@@ -114,89 +124,83 @@ const OpportunityManagement = () => {
             <h1>Admin Opportunity Management</h1>
             {error && <p className="error-message">{error}</p>}
 
+            <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">Create New Opportunity</button>
+
             <Modal
                 title="Create New Opportunity"
+                show={showCreateModal}
                 onConfirm={handleCreate}
+                onCancel={() => setShowCreateModal(false)}
             >
                 <form className="opportunity-form">
                     <input name="title" value={newOpportunity.title} onChange={(e) => handleInputChange(e, 'new')} placeholder="Title" required className="form-input" />
-                    <select name="opp_type" value={newOpportunity.opp_type} onChange={(e) => handleInputChange(e, 'new')} required className="form-input">
-                        <option value="">Select Opportunity Type</option>
-                        <option value="Internship">Internship</option>
-                        <option value="Job">Job</option>
-                        <option value="Scholarship">Scholarship</option>
-                        <option value="Conference">Conference</option>
-                        <option value="Workshop">Workshop</option>
-                        <option value="Volunteer">Volunteer</option>
+                    <textarea name="description" value={newOpportunity.description} onChange={(e) => handleInputChange(e, 'new')} placeholder="Description" required className="form-textarea" />
+                    <input name="link" value={newOpportunity.link} onChange={(e) => handleInputChange(e, 'new')} placeholder="Link" required className="form-input" />
+                    <select name="department" value={newOpportunity.department} onChange={(e) => handleInputChange(e, 'new')} required className="form-input">
+                        <option value="">Select Department</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Health">Health</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Art">Art</option>
+                        <option value="Business">Business</option>
+                        <option value="Mining">Mining</option>
                         <option value="Other">Other</option>
                     </select>
-                    <input name="organization" value={newOpportunity.organization} onChange={(e) => handleInputChange(e, 'new')} placeholder="Organization" required className="form-input" />
-                    <textarea name="description" value={newOpportunity.description} onChange={(e) => handleInputChange(e, 'new')} placeholder="Description" required className="form-textarea" />
-                    <input name="location" value={newOpportunity.location} onChange={(e) => handleInputChange(e, 'new')} placeholder="Location" required className="form-input" />
-                    <input name="duration" value={newOpportunity.duration} onChange={(e) => handleInputChange(e, 'new')} placeholder="Duration" required className="form-input" />
-                    <input type="datetime-local" name="deadline" value={newOpportunity.deadline} onChange={(e) => handleInputChange(e, 'new')} required className="form-input" />
-                    <textarea name="requirements" value={newOpportunity.requirements} onChange={(e) => handleInputChange(e, 'new')} placeholder="Requirements" required className="form-textarea" />
-                    <textarea name="benefits" value={newOpportunity.benefits} onChange={(e) => handleInputChange(e, 'new')} placeholder="Benefits" className="form-textarea" />
-                    <input name="contact_email" value={newOpportunity.contact_email} onChange={(e) => handleInputChange(e, 'new')} placeholder="Contact Email" required className="form-input" />
-                    <input name="app_url" value={newOpportunity.app_url} onChange={(e) => handleInputChange(e, 'new')} placeholder="Application URL" className="form-input" />
-                    <textarea name="application_process" value={newOpportunity.application_process} onChange={(e) => handleInputChange(e, 'new')} placeholder="Application Process" className="form-textarea" />
                 </form>
             </Modal>
 
             <h2>Existing Opportunities</h2>
-            {isLoading && <p>Loading...</p>}
-            <table className="opportunity-table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Organization</th>
-                        <th>Deadline</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {opportunities.map((opportunity) => (
-                        <tr key={opportunity.id}>
-                            <td>{opportunity.title}</td>
-                            <td>{opportunity.opp_type}</td>
-                            <td>{opportunity.organization}</td>
-                            <td>{new Date(opportunity.deadline).toLocaleString()}</td>
-                            <td>
-                                <button onClick={() => setEditingOpportunity(opportunity)} className="btn btn-secondary">Edit</button>
-                                <button onClick={() => handleDelete(opportunity.id)} disabled={isLoading} className="btn btn-danger">Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            {isLoading && <LoadingSpinner />}
+            {!isLoading && (
+                <>
+                    <table className="opportunity-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Department</th>
+                                <th>Link</th>
+                                <th>Posted By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {opportunities.map((opportunity) => (
+                                <tr key={opportunity.id}>
+                                    <td>{opportunity.title}</td>
+                                    <td>{opportunity.department}</td>
+                                    <td><a href={opportunity.link} target="_blank" rel="noopener noreferrer">{opportunity.link}</a></td>
+                                    <td>{opportunity.posted_by_role}</td>
+                                    <td>
+                                        <button onClick={() => setEditingOpportunity(opportunity)} className="btn btn-secondary"><EditIcon /></button>
+                                        <button onClick={() => handleDelete(opportunity.id)} disabled={isLoading} className="btn btn-danger"><DeleteIcon /></button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            )}
             {editingOpportunity && (
                 <Modal
                     title="Edit Opportunity"
+                    show={!!editingOpportunity}
                     onConfirm={handleUpdate}
+                    onCancel={() => setEditingOpportunity(null)}
                 >
                     <form className="opportunity-form">
                         <input name="title" value={editingOpportunity.title} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Title" required className="form-input" />
-                        <select name="opp_type" value={editingOpportunity.opp_type} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input">
-                            <option value="">Select Opportunity Type</option>
-                            <option value="Internship">Internship</option>
-                            <option value="Job">Job</option>
-                            <option value="Scholarship">Scholarship</option>
-                            <option value="Conference">Conference</option>
-                            <option value="Workshop">Workshop</option>
-                            <option value="Volunteer">Volunteer</option>
+                        <textarea name="description" value={editingOpportunity.description} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Description" required className="form-textarea" />
+                        <input name="link" value={editingOpportunity.link} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Link" required className="form-input" />
+                        <select name="department" value={editingOpportunity.department} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Health">Health</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Art">Art</option>
+                            <option value="Business">Business</option>
+                            <option value="Mining">Mining</option>
                             <option value="Other">Other</option>
                         </select>
-                        <input name="organization" value={editingOpportunity.organization} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Organization" required className="form-input" />
-                        <textarea name="description" value={editingOpportunity.description} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Description" required className="form-textarea" />
-                        <input name="location" value={editingOpportunity.location} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Location" required className="form-input" />
-                        <input name="duration" value={editingOpportunity.duration} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Duration" required className="form-input" />
-                        <input type="datetime-local" name="deadline" value={editingOpportunity.deadline} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input" />
-                        <textarea name="requirements" value={editingOpportunity.requirements} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Requirements" required className="form-textarea" />
-                        <textarea name="benefits" value={editingOpportunity.benefits} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Benefits" className="form-textarea" />
-                        <input name="contact_email" value={editingOpportunity.contact_email} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Contact Email" required className="form-input" />
-                        <input name="app_url" value={editingOpportunity.app_url} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Application URL" className="form-input" />
-                        <textarea name="application_process" value={editingOpportunity.application_process} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Application Process" className="form-textarea" />
                     </form>
                 </Modal>
             )}

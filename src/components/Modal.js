@@ -1,27 +1,30 @@
 import React from 'react';
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
+import '../styles/Modal.css';
 
-const MySwal = withReactContent(Swal);
-
-const Modal = ({ title, children, onConfirm, onCancel }) => {
-    const showModal = () => {
-        MySwal.fire({
-            title: title,
-            html: children,
-            showCancelButton: true,
-            confirmButtonText: 'Create',
-            cancelButtonText: 'Cancel',
-            preConfirm: () => {
-                onConfirm();
-            },
-        });
-    };
+const Modal = ({ children, title, onConfirm, onCancel, show }) => {
+    if (!show) {
+        return null;
+    }
 
     return (
-        <button onClick={showModal} className="btn btn-primary">
-            Create New
-        </button>
+        <div className="modal-backdrop">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h4 className="modal-title">{title}</h4>
+                </div>
+                <div className="modal-body">
+                    {children}
+                </div>
+                <div className="modal-footer">
+                    <button onClick={onCancel} className="btn btn-secondary">
+                        Cancel
+                    </button>
+                    <button onClick={onConfirm} className="btn btn-primary">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 };
 

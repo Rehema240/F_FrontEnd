@@ -12,7 +12,6 @@ const Sidebar = ({ isCollapsed, userRole, currentUser, handleToggle, handleLogou
           { name: 'Event Management', path: '/admin/events' },
           { name: 'Opportunity Management', path: '/admin/opportunities' },
           { name: 'User Management', path: '/admin/users' },
-          { name: 'Notifications', path: '/admin/notifications' },
         ];
       case 'student':
         return [

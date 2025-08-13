@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import employeeService from '../../services/employeeService';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/Modal';
 import '../../styles/EventManagement.css';
@@ -18,8 +18,6 @@ const EventManagement = () => {
     });
     const { user } = useAuth();
 
-    const API_URL = process.env.REACT_APP_API_URL;
-
     useEffect(() => {
         fetchEvents();
     }, []);
@@ -27,7 +25,7 @@ const EventManagement = () => {
     const fetchEvents = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${API_URL}events/`);
+            const response = await employeeService.getEvents();
             setEvents(response.data);
         } catch (err) {
             setError('Failed to fetch events.');
@@ -41,7 +39,7 @@ const EventManagement = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            await axios.post(`${API_URL}events/`, { ...newEvent, employee: user.id });
+            await employeeService.createEvent({ ...newEvent, employee: user.id });
             setNewEvent({
                 title: '',
                 description: '',
@@ -62,7 +60,7 @@ const EventManagement = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            await axios.put(`${API_URL}events/${editingEvent.id}/`, { ...editingEvent, employee: user.id });
+            await employeeService.updateEvent(editingEvent.id, { ...editingEvent, employee: user.id });
             setEditingEvent(null);
             fetchEvents();
         } catch (err) {
@@ -76,7 +74,7 @@ const EventManagement = () => {
     const handleDelete = async (id) => {
         setIsLoading(true);
         try {
-            await axios.delete(`${API_URL}events/${id}/`);
+            await employeeService.deleteEvent(id);
             fetchEvents();
         } catch (err) {
             setError('Failed to delete event.');
