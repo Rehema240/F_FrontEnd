@@ -1,78 +1,98 @@
-import axios from 'axios';
+import axios from './axiosConfig';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const getCalendarEvents = () => {
-  return axios.get(`${API_URL}/calendar`);
+// Fetches events created by the logged-in employee
+const getMyEvents = () => {
+  return axios.get(`${API_URL}/employee/dashboard/my_events/`);
 };
 
-const getDashboardStats = () => {
-  return axios.get(`${API_URL}/dashboard`);
+// Fetches the profile of the logged-in employee
+const getMe = () => {
+  return axios.get(`${API_URL}/employee/me/`);
 };
 
-const getEvents = () => {
-  return axios.get(`${API_URL}/events`);
+// Updates the profile of the logged-in employee
+const updateMe = (employeeData) => {
+  return axios.put(`${API_URL}/employee/me/`, employeeData);
 };
 
+// Creates a new event
 const createEvent = (eventData) => {
-  return axios.post(`${API_URL}/events`, eventData);
+  return axios.post(`${API_URL}/employee/events/`, eventData);
 };
 
-const getEventById = (id) => {
-  return axios.get(`${API_URL}/events/${id}`);
+// Fetches a list of events
+const getEvents = (skip = 0, limit = 100) => {
+  return axios.get(`${API_URL}/employee/events/`, { params: { skip, limit } });
 };
 
-const updateEvent = (id, eventData) => {
-  return axios.put(`${API_URL}/events/${id}`, eventData);
+// Fetches a single event by its ID
+const getEventById = (eventId) => {
+  return axios.get(`${API_URL}/employee/events/${eventId}`);
 };
 
-const partialUpdateEvent = (id, eventData) => {
-  return axios.patch(`${API_URL}/events/${id}`, eventData);
+// Updates an existing event
+const updateEvent = (eventId, eventData) => {
+  return axios.put(`${API_URL}/employee/events/${eventId}`, eventData);
 };
 
-const deleteEvent = (id) => {
-  return axios.delete(`${API_URL}/events/${id}`);
+// Deletes an event
+const deleteEvent = (eventId) => {
+  return axios.delete(`${API_URL}/employee/events/${eventId}`);
 };
 
-const getOpportunities = () => {
-  return axios.get(`${API_URL}/opportunities`);
+// Fetches events for the calendar view within a specific time range
+const getEventsForCalendar = (start_time, end_time) => {
+  return axios.get(`${API_URL}/employee/events/calendar_view/`, { params: { start_time, end_time } });
 };
 
-const createOpportunity = (opportunityData) => {
-  return axios.post(`${API_URL}/opportunities`, opportunityData);
+// Fetches a list of opportunities
+const getOpportunities = (skip = 0, limit = 100) => {
+  return axios.get(`${API_URL}/employee/opportunities/`, { params: { skip, limit } });
 };
 
-const getOpportunityById = (id) => {
-  return axios.get(`${API_URL}/opportunities/${id}`);
+// Fetches a single opportunity by its ID
+const getOpportunityById = (opportunityId) => {
+  return axios.get(`${API_URL}/employee/opportunities/${opportunityId}`);
 };
 
-const updateOpportunity = (id, opportunityData) => {
-  return axios.put(`${API_URL}/opportunities/${id}`, opportunityData);
+// Fetches the list of confirmations for a specific event
+const getEventConfirmations = (eventId) => {
+  return axios.get(`${API_URL}/employee/events/${eventId}/confirmations`);
 };
 
-const partialUpdateOpportunity = (id, opportunityData) => {
-  return axios.patch(`${API_URL}/opportunities/${id}`, opportunityData);
+// Fetches a list of notifications for the logged-in employee
+const getNotifications = (skip = 0, limit = 100) => {
+  return axios.get(`${API_URL}/employee/notifications/`, { params: { skip, limit } });
 };
 
-const deleteOpportunity = (id) => {
-  return axios.delete(`${API_URL}/opportunities/${id}`);
+// Fetches a single notification by its ID
+const getNotificationById = (notificationId) => {
+  return axios.get(`${API_URL}/employee/notifications/${notificationId}`);
+};
+
+// Marks a notification as read
+const markNotificationAsRead = (notificationId) => {
+  return axios.put(`${API_URL}/employee/notifications/${notificationId}/read`);
 };
 
 const employeeService = {
-  getCalendarEvents,
-  getDashboardStats,
-  getEvents,
+  getMyEvents,
+  getMe,
+  updateMe,
   createEvent,
+  getEvents,
   getEventById,
   updateEvent,
-  partialUpdateEvent,
   deleteEvent,
+  getEventsForCalendar,
   getOpportunities,
-  createOpportunity,
   getOpportunityById,
-  updateOpportunity,
-  partialUpdateOpportunity,
-  deleteOpportunity,
+  getEventConfirmations,
+  getNotifications,
+  getNotificationById,
+  markNotificationAsRead,
 };
 
 export default employeeService;

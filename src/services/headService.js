@@ -1,17 +1,17 @@
-import axios from 'axios';
+import axios from './axiosConfig';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const getCalendarEvents = () => {
-  return axios.get(`${API_URL}/calendar`);
+const getCalendarEvents = (start_time, end_time) => {
+  return axios.get(`${API_URL}/head/events/calendar_view/`, { params: { start_time, end_time } });
 };
 
-const getConfirmedStudents = () => {
-  return axios.get(`${API_URL}/confirmed-students`);
+const getConfirmedStudents = (event_id) => {
+  return axios.get(`${API_URL}/head/events/${event_id}/confirmations`);
 };
 
 const getDashboardStats = () => {
-  return axios.get(`${API_URL}/dashboard`);
+  return axios.get(`${API_URL}/head/dashboard`);
 };
 
 const getDepartmentUsers = () => {
@@ -22,52 +22,44 @@ const getDepartmentEvents = () => {
   return axios.get(`${API_URL}/head/dashboard/department_events/`);
 };
 
-const getEvents = () => {
-  return axios.get(`${API_URL}/events`);
+const getEvents = (skip = 0, limit = 100) => {
+  return axios.get(`${API_URL}/head/events/`, { params: { skip, limit } });
 };
 
 const createEvent = (eventData) => {
-  return axios.post(`${API_URL}/events`, eventData);
+  return axios.post(`${API_URL}/head/events/`, eventData);
 };
 
 const getEventById = (id) => {
-  return axios.get(`${API_URL}/events/${id}`);
+  return axios.get(`${API_URL}/head/events/${id}`);
 };
 
 const updateEvent = (id, eventData) => {
-  return axios.put(`${API_URL}/events/${id}`, eventData);
-};
-
-const partialUpdateEvent = (id, eventData) => {
-  return axios.patch(`${API_URL}/events/${id}`, eventData);
+  return axios.put(`${API_URL}/head/events/${id}`, eventData);
 };
 
 const deleteEvent = (id) => {
-  return axios.delete(`${API_URL}/events/${id}`);
+  return axios.delete(`${API_URL}/head/events/${id}`);
 };
 
-const getOpportunities = () => {
-  return axios.get(`${API_URL}/opportunities`);
+const getOpportunities = (skip = 0, limit = 100) => {
+  return axios.get(`${API_URL}/head/opportunities/`, { params: { skip, limit } });
 };
 
 const createOpportunity = (opportunityData) => {
-  return axios.post(`${API_URL}/opportunities`, opportunityData);
+  return axios.post(`${API_URL}/head/opportunities/`, opportunityData);
 };
 
 const getOpportunityById = (id) => {
-  return axios.get(`${API_URL}/opportunities/${id}`);
+  return axios.get(`${API_URL}/head/opportunities/${id}`);
 };
 
 const updateOpportunity = (id, opportunityData) => {
-  return axios.put(`${API_URL}/opportunities/${id}`, opportunityData);
-};
-
-const partialUpdateOpportunity = (id, opportunityData) => {
-  return axios.patch(`${API_URL}/opportunities/${id}`, opportunityData);
+  return axios.put(`${API_URL}/head/opportunities/${id}`, opportunityData);
 };
 
 const deleteOpportunity = (id) => {
-  return axios.delete(`${API_URL}/opportunities/${id}`);
+  return axios.delete(`${API_URL}/head/opportunities/${id}`);
 };
 
 const headService = {
@@ -80,13 +72,11 @@ const headService = {
   createEvent,
   getEventById,
   updateEvent,
-  partialUpdateEvent,
   deleteEvent,
   getOpportunities,
   createOpportunity,
   getOpportunityById,
   updateOpportunity,
-  partialUpdateOpportunity,
   deleteOpportunity,
 };
 

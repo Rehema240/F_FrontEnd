@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import axios from '../services/axiosConfig';
 
 const AuthContext = createContext(null);
 
@@ -9,25 +9,9 @@ export const AuthProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Setup axios interceptor
-    const requestInterceptor = axios.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-          config.headers['Authorization'] = `Bearer ${token}`;
-        }
-        console.log('Starting Request', JSON.stringify(config, null, 2));
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-
     const fetchUser = async () => {
-      const accessToken = localStorage.getItem('accessToken');
-      if (accessToken) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      const token = localStorage.getItem('token');
+      if (token) {
         try {
           const response = await axios.get(`${process.env.REACT_APP_API_URL}/me`);
           setUser(response.data);
@@ -44,11 +28,6 @@ export const AuthProvider = ({ children }) => {
     };
 
     fetchUser();
-
-    // Cleanup interceptor on unmount
-    return () => {
-      axios.interceptors.request.eject(requestInterceptor);
-    };
   }, []);
 
   const login = async (email, password) => {
@@ -57,8 +36,7 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
       });
-      localStorage.setItem('accessToken', response.data.access_token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
+      localStorage.setItem('token', response.data.access_token);
       const userResponse = await axios.get(`${process.env.REACT_APP_API_URL}/me`);
       setUser(userResponse.data);
       return true;
@@ -70,8 +48,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('accessToken');
-    delete axios.defaults.headers.common['Authorization'];
+    localStorage.removeItem('token');
     setUser(null);
   };
 

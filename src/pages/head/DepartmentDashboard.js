@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import headService from '../../services/headService';
+import '../../styles/DashboardOverview.css';
 
 const DepartmentDashboard = () => {
   const [stats, setStats] = useState(null);
-  const [departmentUsers, setDepartmentUsers] = useState(null);
-  const [departmentEvents, setDepartmentEvents] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,13 +13,6 @@ const DepartmentDashboard = () => {
       try {
         const statsResponse = await headService.getDashboardStats();
         setStats(statsResponse.data);
-
-        const usersResponse = await headService.getDepartmentUsers();
-        setDepartmentUsers(usersResponse.data);
-
-        const eventsResponse = await headService.getDepartmentEvents();
-        setDepartmentEvents(eventsResponse.data);
-
       } catch (err) {
         setError('Failed to fetch dashboard data.');
         console.error(err);
@@ -41,24 +33,22 @@ const DepartmentDashboard = () => {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="dashboard-overview">
       <h1>Head Department Dashboard</h1>
       {stats && (
-        <div>
-          <h2>Dashboard Statistics</h2>
-          <pre>{JSON.stringify(stats, null, 2)}</pre>
-        </div>
-      )}
-      {departmentUsers && (
-        <div>
-          <h2>Department Users</h2>
-          <pre>{JSON.stringify(departmentUsers, null, 2)}</pre>
-        </div>
-      )}
-      {departmentEvents && (
-        <div>
-          <h2>Department Events</h2>
-          <pre>{JSON.stringify(departmentEvents, null, 2)}</pre>
+        <div className="stats-container">
+          <div className="stat-card">
+            <h2>Department Users</h2>
+            <p>{stats.department_users}</p>
+          </div>
+          <div className="stat-card">
+            <h2>Department Events</h2>
+            <p>{stats.department_events}</p>
+          </div>
+          <div className="stat-card">
+            <h2>Department Opportunities</h2>
+            <p>{stats.department_opportunities}</p>
+          </div>
         </div>
       )}
       <hr />

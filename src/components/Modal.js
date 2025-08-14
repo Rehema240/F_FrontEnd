@@ -19,7 +19,11 @@ const Modal = ({ children, title, onConfirm, onCancel, show }) => {
                     <button onClick={onCancel} className="btn btn-secondary">
                         Cancel
                     </button>
-                    <button onClick={onConfirm} className="btn btn-primary">
+                    <button onClick={(e) => {
+                        if (onConfirm) {
+                            onConfirm(e);
+                        }
+                    }} className="btn btn-primary">
                         Confirm
                     </button>
                 </div>
