@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import employeeService from '../../services/employeeService';
+import '../../styles/DashboardOverview.css';
 
 const MyDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -31,12 +32,22 @@ const MyDashboard = () => {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="dashboard-overview">
       <h1>Employee My Dashboard</h1>
       {stats ? (
-        <div>
-          <h2>Dashboard Statistics</h2>
-          <pre>{JSON.stringify(stats, null, 2)}</pre>
+        <div className="stats-container">
+          <div className="stat-card">
+            <h2>Events Created</h2>
+            <p>{stats.events_created}</p>
+          </div>
+          <div className="stat-card">
+            <h2>Opportunities Created</h2>
+            <p>{stats.opportunities_created}</p>
+          </div>
+          <div className="stat-card">
+            <h2>Confirmations for My Events</h2>
+            <p>{stats.confirmations_for_my_events}</p>
+          </div>
         </div>
       ) : (
         <p>No statistics available.</p>

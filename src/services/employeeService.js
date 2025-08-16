@@ -77,7 +77,12 @@ const markNotificationAsRead = (notificationId) => {
   return axios.put(`${API_URL}/employee/notifications/${notificationId}/read`);
 };
 
+const getDashboardStats = () => {
+  return axios.get(`${API_URL}/employee/dashboard`);
+};
+
 const employeeService = {
+  getDashboardStats,
   getMyEvents,
   getMe,
   updateMe,

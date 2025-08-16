@@ -9,7 +9,10 @@ const CalendarView = () => {
   useEffect(() => {
     const fetchCalendarEvents = async () => {
       try {
-        const response = await employeeService.getCalendarEvents();
+        const now = new Date();
+        const start_time = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const end_time = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+        const response = await employeeService.getEventsForCalendar(start_time, end_time);
         setEvents(response.data);
       } catch (err) {
         setError('Failed to fetch calendar events.');
