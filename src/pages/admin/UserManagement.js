@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import adminService from '../../services/adminService';
-import Modal from '../../components/Modal';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EditIcon from '../../components/EditIcon';
 import DeleteIcon from '../../components/DeleteIcon';
+import EditIcon from '../../components/EditIcon';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import Modal from '../../components/Modal';
+import adminService from '../../services/adminService';
 import '../../styles/UserManagement.css';
 
 const UserManagement = () => {
@@ -41,6 +41,11 @@ const UserManagement = () => {
 
     const handleCreate = async () => {
         setIsLoading(true);
+        if (!newUser.role) {
+            Swal.fire('Error!', 'Please select a role.', 'error');
+            setIsLoading(false);
+            return;
+        }
         try {
             const userData = { ...newUser };
             if (!userData.department) {
@@ -59,9 +64,10 @@ const UserManagement = () => {
             fetchUsers();
             Swal.fire('Success!', 'User created successfully.', 'success');
         } catch (err) {
-            setError('Failed to create user.');
+            const errorMsg = err.response?.data?.detail || 'Failed to create user.';
+            setError(errorMsg);
             console.error(err);
-            Swal.fire('Error!', 'Failed to create user.', 'error');
+            Swal.fire('Error!', errorMsg, 'error');
         } finally {
             setIsLoading(false);
         }

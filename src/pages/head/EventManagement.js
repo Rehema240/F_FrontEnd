@@ -57,6 +57,7 @@ const EventManagement = () => {
             });
             setIsCreateModalOpen(false);
             fetchEvents();
+            Swal.fire('Success!', 'Event created successfully.', 'success');
         } catch (err) {
             setError('Failed to create event.');
             console.error(err);
@@ -72,6 +73,7 @@ const EventManagement = () => {
             await headService.updateEvent(editingEvent.id, editingEvent);
             setEditingEvent(null);
             fetchEvents();
+            Swal.fire('Success!', 'Event updated successfully.', 'success');
         } catch (err) {
             setError('Failed to update event.');
             console.error(err);
@@ -125,8 +127,6 @@ const EventManagement = () => {
             <h1>Head Event Management</h1>
             {error && <p style={{ color: 'red' }}>{error}</p>}
 
-            <button onClick={() => setIsCreateModalOpen(true)}>Create New Event</button>
-
             {isCreateModalOpen && (
                 <Modal
                     title="Create New Event"
@@ -137,7 +137,16 @@ const EventManagement = () => {
                         <input name="title" value={newEvent.title} onChange={(e) => handleInputChange(e, 'new')} placeholder="Title" required className="form-input" />
                         <textarea name="description" value={newEvent.description} onChange={(e) => handleInputChange(e, 'new')} placeholder="Description" required className="form-textarea" />
                         <input name="location" value={newEvent.location} onChange={(e) => handleInputChange(e, 'new')} placeholder="Location" required className="form-input" />
-                        <input name="department" value={newEvent.department} onChange={(e) => handleInputChange(e, 'new')} placeholder="Department" required className="form-input" />
+                        <select name="department" value={newEvent.department} onChange={(e) => handleInputChange(e, 'new')} className="form-input">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Health">Health</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Art">Art</option>
+                            <option value="Business">Business</option>
+                            <option value="Mining">Mining</option>
+                            <option value="Other">Other</option>
+                        </select>
                         <input type="datetime-local" name="start_time" value={newEvent.start_time} onChange={(e) => handleInputChange(e, 'new')} required className="form-input" />
                         <input type="datetime-local" name="end_time" value={newEvent.end_time} onChange={(e) => handleInputChange(e, 'new')} required className="form-input" />
                         <input type="number" name="capacity" value={newEvent.capacity} onChange={(e) => handleInputChange(e, 'new')} placeholder="Capacity" required className="form-input" />
@@ -196,7 +205,16 @@ const EventManagement = () => {
                         <input name="title" value={editingEvent.title} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Title" required className="form-input" />
                         <textarea name="description" value={editingEvent.description} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Description" required className="form-textarea" />
                         <input name="location" value={editingEvent.location} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Location" required className="form-input" />
-                        <input name="department" value={editingEvent.department} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Department" required className="form-input" />
+                        <select name="department" value={editingEvent.department} onChange={(e) => handleInputChange(e, 'edit')} className="form-input">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Health">Health</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Art">Art</option>
+                            <option value="Business">Business</option>
+                            <option value="Mining">Mining</option>
+                            <option value="Other">Other</option>
+                        </select>
                         <input type="datetime-local" name="start_time" value={editingEvent.start_time} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input" />
                         <input type="datetime-local" name="end_time" value={editingEvent.end_time} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input" />
                         <input type="number" name="capacity" value={editingEvent.capacity} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Capacity" required className="form-input" />

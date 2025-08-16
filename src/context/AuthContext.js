@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from '../services/axiosConfig';
+import axios from 'axios';
+import authAxios from '../services/axiosConfig';
 
 const AuthContext = createContext(null);
 
@@ -37,7 +38,7 @@ export const AuthProvider = ({ children }) => {
         password,
       });
       localStorage.setItem('token', response.data.access_token);
-      const userResponse = await axios.get(`${process.env.REACT_APP_API_URL}/me`);
+      const userResponse = await authAxios.get(`${process.env.REACT_APP_API_URL}/me`);
       setUser(userResponse.data);
       return true;
     } catch (error) {
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }) => {
 
   const changePassword = async (old_password, new_password) => {
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/change-password`, {
+      await authAxios.post(`${process.env.REACT_APP_API_URL}/change-password`, {
         old_password,
         new_password,
       });

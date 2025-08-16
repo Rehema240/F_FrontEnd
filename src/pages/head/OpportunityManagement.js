@@ -49,6 +49,7 @@ const OpportunityManagement = () => {
             });
             setIsCreateModalOpen(false);
             fetchOpportunities();
+            Swal.fire('Success!', 'Opportunity created successfully.', 'success');
         } catch (err) {
             setError('Failed to create opportunity.');
             console.error(err);
@@ -64,6 +65,7 @@ const OpportunityManagement = () => {
             await headService.updateOpportunity(editingOpportunity.id, editingOpportunity);
             setEditingOpportunity(null);
             fetchOpportunities();
+            Swal.fire('Success!', 'Opportunity updated successfully.', 'success');
         } catch (err) {
             setError('Failed to update opportunity.');
             console.error(err);
@@ -116,8 +118,6 @@ const OpportunityManagement = () => {
             <h1>Head Opportunity Management</h1>
             {error && <p className="error-message">{error}</p>}
 
-            <button onClick={() => setIsCreateModalOpen(true)}>Create New Opportunity</button>
-
             {isCreateModalOpen && (
                 <Modal
                     title="Create New Opportunity"
@@ -128,7 +128,16 @@ const OpportunityManagement = () => {
                         <input name="title" value={newOpportunity.title} onChange={(e) => handleInputChange(e, 'new')} placeholder="Title" required className="form-input" />
                         <textarea name="description" value={newOpportunity.description} onChange={(e) => handleInputChange(e, 'new')} placeholder="Description" required className="form-textarea" />
                         <input name="link" value={newOpportunity.link} onChange={(e) => handleInputChange(e, 'new')} placeholder="Link" required className="form-input" />
-                        <input name="department" value={newOpportunity.department} onChange={(e) => handleInputChange(e, 'new')} placeholder="Department" required className="form-input" />
+                        <select name="department" value={newOpportunity.department} onChange={(e) => handleInputChange(e, 'new')} className="form-input">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Health">Health</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Art">Art</option>
+                            <option value="Business">Business</option>
+                            <option value="Mining">Mining</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </form>
                 </Modal>
             )}
@@ -168,7 +177,16 @@ const OpportunityManagement = () => {
                         <input name="title" value={editingOpportunity.title} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Title" required className="form-input" />
                         <textarea name="description" value={editingOpportunity.description} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Description" required className="form-textarea" />
                         <input name="link" value={editingOpportunity.link} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Link" required className="form-input" />
-                        <input name="department" value={editingOpportunity.department} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Department" required className="form-input" />
+                        <select name="department" value={editingOpportunity.department} onChange={(e) => handleInputChange(e, 'edit')} className="form-input">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Health">Health</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Art">Art</option>
+                            <option value="Business">Business</option>
+                            <option value="Mining">Mining</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </form>
                 </Modal>
             )}
