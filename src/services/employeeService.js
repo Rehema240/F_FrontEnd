@@ -78,7 +78,9 @@ const markNotificationAsRead = (notificationId) => {
 };
 
 const getDashboardStats = () => {
-  return axios.get(`${API_URL}/employee/dashboard`);
+  // This endpoint should be updated based on your backend API
+  // If /employee/dashboard doesn't exist, we might need to combine data from other endpoints
+  return axios.get(`${API_URL}/employee/dashboard/stats`);
 };
 
 const employeeService = {

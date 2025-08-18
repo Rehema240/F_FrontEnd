@@ -52,8 +52,16 @@ const partialUpdateEvent = (id, eventData) => {
   return axios.patch(`${API_URL}/admin/events/${id}`, eventData);
 };
 
-const deleteEvent = (id) => {
-  return axios.delete(`${API_URL}/admin/events/${id}`);
+const deleteEvent = async (id) => {
+  try {
+    console.log(`Attempting to delete event with ID: ${id}`);
+    const response = await axios.delete(`${API_URL}/admin/events/${id}`);
+    console.log('Delete response:', response);
+    return response;
+  } catch (error) {
+    console.error('Error deleting event:', error.response?.status, error.response?.data);
+    throw error;
+  }
 };
 
 // Opportunity related functions

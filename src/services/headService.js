@@ -10,6 +10,7 @@ const getConfirmedStudents = (event_id) => {
   return axios.get(`${API_URL}/head/events/${event_id}/confirmations`);
 };
 
+// Function to get dashboard statistics for head department
 const getDashboardStats = () => {
   return axios.get(`${API_URL}/head/dashboard`);
 };
@@ -20,6 +21,10 @@ const getDepartmentUsers = () => {
 
 const getDepartmentEvents = () => {
   return axios.get(`${API_URL}/head/dashboard/department_events/`);
+};
+
+const getDepartmentOpportunities = () => {
+  return axios.get(`${API_URL}/head/dashboard/department_opportunities/`);
 };
 
 const getEvents = (skip = 0, limit = 100) => {
@@ -68,6 +73,7 @@ const headService = {
   getDashboardStats,
   getDepartmentUsers,
   getDepartmentEvents,
+  getDepartmentOpportunities,
   getEvents,
   createEvent,
   getEventById,

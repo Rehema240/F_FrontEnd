@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import adminService from '../../services/adminService';
-import { useAuth } from '../../context/AuthContext';
-import Modal from '../../components/Modal';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EditIcon from '../../components/EditIcon';
 import DeleteIcon from '../../components/DeleteIcon';
+import EditIcon from '../../components/EditIcon';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import Modal from '../../components/Modal';
+import { useAuth } from '../../context/AuthContext';
+import adminService from '../../services/adminService';
 import '../../styles/EventManagement.css';
 
 const EventManagement = () => {
     const [events, setEvents] = useState([]);
+    const [filteredEvents, setFilteredEvents] = useState([]);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [editingEvent, setEditingEvent] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showOnlyMine, setShowOnlyMine] = useState(false);
     const [newEvent, setNewEvent] = useState({
         title: '',
         description: '',
@@ -29,6 +31,20 @@ const EventManagement = () => {
     useEffect(() => {
         fetchEvents();
     }, []);
+    
+    // Filter events based on the showOnlyMine setting
+    useEffect(() => {
+        if (!events.length) {
+            setFilteredEvents([]);
+            return;
+        }
+        
+        if (showOnlyMine && user) {
+            setFilteredEvents(events.filter(event => event.creator_id === user.id));
+        } else {
+            setFilteredEvents(events);
+        }
+    }, [events, showOnlyMine, user]);
 
     const fetchEvents = async () => {
         setIsLoading(true);
@@ -86,6 +102,13 @@ const EventManagement = () => {
     };
 
     const handleDelete = async (id) => {
+        // Find the event to be deleted
+        const eventToDelete = events.find(event => event.id === id);
+        
+        // Since admins can now delete any event, we don't need to check if they are the creator
+        // The isCreator check is just used for UI highlighting purposes now
+        const isCreator = user && eventToDelete && user.id === eventToDelete.creator_id;
+        
         Swal.fire({
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
@@ -98,6 +121,7 @@ const EventManagement = () => {
             if (result.isConfirmed) {
                 setIsLoading(true);
                 try {
+                    console.log(`Attempting to delete event with ID: ${id}`);
                     await adminService.deleteEvent(id);
                     fetchEvents();
                     Swal.fire(
@@ -106,11 +130,24 @@ const EventManagement = () => {
                         'success'
                     );
                 } catch (err) {
-                    setError('Failed to delete event.');
-                    console.error(err);
+                    console.error('Delete error details:', err);
+                    let errorMessage = 'Failed to delete event.';
+                    
+                    if (err.response) {
+                        console.log('Error response:', err.response);
+                        if (err.response.status === 403) {
+                            errorMessage = 'An unexpected permission error occurred. Please contact the system administrator.';
+                        } else if (err.response.data && typeof err.response.data === 'string') {
+                            errorMessage = err.response.data;
+                        } else if (err.response.data && err.response.data.detail) {
+                            errorMessage = err.response.data.detail;
+                        }
+                    }
+                    
+                    setError(errorMessage);
                     Swal.fire(
                         'Error!',
-                        'Failed to delete event.',
+                        errorMessage,
                         'error'
                     );
                 } finally {
@@ -133,6 +170,8 @@ const EventManagement = () => {
         <div className="event-management-container">
             <h1>Admin Event Management</h1>
             {error && <p className="error-message">{error}</p>}
+            
+            
 
             <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">Create New Event</button>
 
@@ -166,9 +205,25 @@ const EventManagement = () => {
                 </form>
             </Modal>
 
-            <h2>Existing Events</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h2>Existing Events</h2>
+                <div>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                        <input 
+                            type="checkbox" 
+                            checked={showOnlyMine} 
+                            onChange={(e) => setShowOnlyMine(e.target.checked)}
+                            style={{ marginRight: '5px' }}
+                        />
+                        Show only my events
+                    </label>
+                </div>
+            </div>
             {isLoading && <LoadingSpinner />}
-            {!isLoading && (
+            {!isLoading && filteredEvents.length === 0 && (
+                <p>No events found. {showOnlyMine ? "You haven't created any events yet." : ""}</p>
+            )}
+            {!isLoading && filteredEvents.length > 0 && (
             <table className="event-table">
                 <thead>
                     <tr>
@@ -183,25 +238,57 @@ const EventManagement = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {events.map((event) => (
-                        <tr key={event.id}>
-                            <td>{event.title}</td>
-                            <td>{event.department}</td>
-                            <td>{new Date(event.start_time).toLocaleString()}</td>
-                            <td>{new Date(event.end_time).toLocaleString()}</td>
-                            <td>{event.capacity}</td>
-                            <td>{event.is_public ? 'Yes' : 'No'}</td>
-                            <td>{event.creator_role}</td>
-                            <td>
-                                <button onClick={() => setEditingEvent(event)} className="btn btn-secondary">
-                                    <EditIcon />
-                                </button>
-                                <button onClick={() => handleDelete(event.id)} disabled={isLoading} className="btn btn-danger">
-                                    <DeleteIcon />
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
+                    {filteredEvents.map((event) => {
+                        const isCreator = user && user.id === event.creator_id;
+                        return (
+                            <tr key={event.id} style={isCreator ? {background: 'rgba(200, 255, 200, 0.1)'} : {}}>
+                                <td>{event.title}</td>
+                                <td>{event.department}</td>
+                                <td>{new Date(event.start_time).toLocaleString()}</td>
+                                <td>{new Date(event.end_time).toLocaleString()}</td>
+                                <td>{event.capacity}</td>
+                                <td>{event.is_public ? 'Yes' : 'No'}</td>
+                                <td>
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '5px'}}>
+                                        {event.creator_role}
+                                        {isCreator && 
+                                            <span style={{
+                                                background: '#28a745', 
+                                                color: 'white', 
+                                                padding: '1px 5px', 
+                                                borderRadius: '3px',
+                                                fontSize: '0.7em'
+                                            }}>
+                                                You
+                                            </span>
+                                        }
+                                    </div>
+                                    {event.creator_id && 
+                                        <span 
+                                            title={`Creator ID: ${event.creator_id}`} 
+                                            style={{fontSize: '0.8em', display: 'block', color: isCreator ? '#28a745' : 'inherit'}}
+                                        >
+                                            ID: {event.creator_id.substring(0, 8)}...
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <button onClick={() => setEditingEvent(event)} className="btn btn-secondary" title="Edit event">
+                                        <EditIcon />
+                                    </button>
+                                    {/* Check if current user is the creator or has same role as creator */}
+                                    <button 
+                                        onClick={() => handleDelete(event.id)} 
+                                        disabled={isLoading} 
+                                        className="btn btn-danger"
+                                        title={isCreator ? "Delete your event" : "Delete this event (admin privilege)"}
+                                    >
+                                        <DeleteIcon />
+                                    </button>
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
             )}

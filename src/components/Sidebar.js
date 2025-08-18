@@ -1,7 +1,6 @@
-import React from 'react';
+import SidebarFooter from './SidebarFooter';
 import SidebarHeader from './SidebarHeader';
 import SidebarMenu from './SidebarMenu';
-import SidebarFooter from './SidebarFooter';
 
 const Sidebar = ({ isCollapsed, userRole, currentUser, handleToggle, handleLogout }) => {
   const getMenuItems = (role) => {
@@ -28,8 +27,8 @@ const Sidebar = ({ isCollapsed, userRole, currentUser, handleToggle, handleLogou
           { name: 'Department Dashboard', path: '/head/dashboard' },
           { name: 'Event Management', path: '/head/events' },
           { name: 'Opportunity Management', path: '/head/opportunities' },
-          { name: 'Notifications', path: '/head/notifications' },
           { name: 'Calendar View', path: '/head/calendar' },
+          { name: 'Confirmed Students', path: '/head/confirmed-students' },
         ];
       case 'employee':
         return [
@@ -37,7 +36,7 @@ const Sidebar = ({ isCollapsed, userRole, currentUser, handleToggle, handleLogou
           { name: 'Event Management', path: '/employee/events' },
           { name: 'Calendar View', path: '/employee/calendar' },
           { name: 'Profile Settings', path: '/employee/profile' },
-          { name: 'Notifications', path: '/employee/notifications' },
+         
         ];
       default:
         return [];

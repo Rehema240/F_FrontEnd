@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import employeeService from '../../services/employeeService';
-import { useAuth } from '../../context/AuthContext';
+import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
+import { useAuth } from '../../context/AuthContext';
+import employeeService from '../../services/employeeService';
 import '../../styles/EventManagement.css';
 
 const EventManagement = () => {
@@ -9,12 +9,16 @@ const EventManagement = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newEvent, setNewEvent] = useState({
         title: '',
         description: '',
-        duration: '',
-        deadline: '',
-        number_of_participant: 0,
+        location: '',
+        department: '',
+        start_time: '',
+        end_time: '',
+        capacity: 0,
+        is_public: true,
     });
     const { user } = useAuth();
 
@@ -25,7 +29,8 @@ const EventManagement = () => {
     const fetchEvents = async () => {
         setIsLoading(true);
         try {
-            const response = await employeeService.getEvents();
+            // Use getMyEvents to get only events created by the current employee
+            const response = await employeeService.getMyEvents();
             setEvents(response.data);
         } catch (err) {
             setError('Failed to fetch events.');
@@ -43,9 +48,12 @@ const EventManagement = () => {
             setNewEvent({
                 title: '',
                 description: '',
-                duration: '',
-                deadline: '',
-                number_of_participant: 0,
+                location: '',
+                department: '',
+                start_time: '',
+                end_time: '',
+                capacity: 0,
+                is_public: true,
             });
             fetchEvents();
         } catch (err) {
@@ -97,17 +105,36 @@ const EventManagement = () => {
         <div className="event-management-container">
             <h1>Employee Event Management</h1>
             {error && <p className="error-message">{error}</p>}
+            
+            <button onClick={() => setIsCreateModalOpen(true)} className="btn btn-primary">Create New Event</button>
 
             <Modal
                 title="Create New Event"
                 onConfirm={handleCreate}
+                show={isCreateModalOpen}
+                onCancel={() => setIsCreateModalOpen(false)}
             >
                 <form className="event-form">
                     <input name="title" value={newEvent.title} onChange={(e) => handleInputChange(e, 'new')} placeholder="Title" required className="form-input" />
                     <textarea name="description" value={newEvent.description} onChange={(e) => handleInputChange(e, 'new')} placeholder="Description" required className="form-textarea" />
-                    <input name="duration" value={newEvent.duration} onChange={(e) => handleInputChange(e, 'new')} placeholder="Duration" required className="form-input" />
-                    <input type="datetime-local" name="deadline" value={newEvent.deadline} onChange={(e) => handleInputChange(e, 'new')} required className="form-input" />
-                    <input type="number" name="number_of_participant" value={newEvent.number_of_participant} onChange={(e) => handleInputChange(e, 'new')} placeholder="Number of Participants" required className="form-input" />
+                    <input name="location" value={newEvent.location} onChange={(e) => handleInputChange(e, 'new')} placeholder="Location" required className="form-input" />
+                    <select name="department" value={newEvent.department} onChange={(e) => handleInputChange(e, 'new')} required className="form-input">
+                        <option value="">Select Department</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Health">Health</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Art">Art</option>
+                        <option value="Business">Business</option>
+                        <option value="Mining">Mining</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="datetime-local" name="start_time" value={newEvent.start_time} onChange={(e) => handleInputChange(e, 'new')} required className="form-input" />
+                    <input type="datetime-local" name="end_time" value={newEvent.end_time} onChange={(e) => handleInputChange(e, 'new')} required className="form-input" />
+                    <input type="number" name="capacity" value={newEvent.capacity} onChange={(e) => handleInputChange(e, 'new')} placeholder="Capacity" required className="form-input" />
+                    <label>
+                        <input type="checkbox" name="is_public" checked={newEvent.is_public} onChange={(e) => setNewEvent({ ...newEvent, is_public: e.target.checked })} />
+                        Public
+                    </label>
                 </form>
             </Modal>
 
@@ -117,10 +144,13 @@ const EventManagement = () => {
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Description</th>
-                        <th>Duration</th>
-                        <th>Deadline</th>
-                        <th>Participants</th>
+                        <th>Department</th>
+                        <th>Location</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Capacity</th>
+                        <th>Confirmations</th>
+                        <th>Public</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -128,10 +158,13 @@ const EventManagement = () => {
                     {events.map((event) => (
                         <tr key={event.id}>
                             <td>{event.title}</td>
-                            <td>{event.description}</td>
-                            <td>{event.duration}</td>
-                            <td>{new Date(event.deadline).toLocaleString()}</td>
-                            <td>{event.number_of_participant}</td>
+                            <td>{event.department}</td>
+                            <td>{event.location}</td>
+                            <td>{new Date(event.start_time).toLocaleString()}</td>
+                            <td>{new Date(event.end_time).toLocaleString()}</td>
+                            <td>{event.capacity}</td>
+                            <td>{event.confirmation_count || 0}</td>
+                            <td>{event.is_public ? 'Yes' : 'No'}</td>
                             <td>
                                 <button onClick={() => setEditingEvent(event)} className="btn btn-secondary">Edit</button>
                                 <button onClick={() => handleDelete(event.id)} disabled={isLoading} className="btn btn-danger">Delete</button>
@@ -144,13 +177,30 @@ const EventManagement = () => {
                 <Modal
                     title="Edit Event"
                     onConfirm={handleUpdate}
+                    show={!!editingEvent}
+                    onCancel={() => setEditingEvent(null)}
                 >
                     <form className="event-form">
                         <input name="title" value={editingEvent.title} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Title" required className="form-input" />
                         <textarea name="description" value={editingEvent.description} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Description" required className="form-textarea" />
-                        <input name="duration" value={editingEvent.duration} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Duration" required className="form-input" />
-                        <input type="datetime-local" name="deadline" value={editingEvent.deadline} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input" />
-                        <input type="number" name="number_of_participant" value={editingEvent.number_of_participant} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Number of Participants" required className="form-input" />
+                        <input name="location" value={editingEvent.location} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Location" required className="form-input" />
+                        <select name="department" value={editingEvent.department} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Health">Health</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Art">Art</option>
+                            <option value="Business">Business</option>
+                            <option value="Mining">Mining</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="datetime-local" name="start_time" value={editingEvent.start_time} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input" />
+                        <input type="datetime-local" name="end_time" value={editingEvent.end_time} onChange={(e) => handleInputChange(e, 'edit')} required className="form-input" />
+                        <input type="number" name="capacity" value={editingEvent.capacity} onChange={(e) => handleInputChange(e, 'edit')} placeholder="Capacity" required className="form-input" />
+                        <label>
+                            <input type="checkbox" name="is_public" checked={editingEvent.is_public} onChange={(e) => setEditingEvent({ ...editingEvent, is_public: e.target.checked })} />
+                            Public
+                        </label>
                     </form>
                 </Modal>
             )}

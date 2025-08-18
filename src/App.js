@@ -1,44 +1,43 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { useState } from 'react';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import './App.css';
+import ChangePassword from './components/ChangePassword';
 import LoadingSpinner from './components/LoadingSpinner';
 import LoginNew from './components/LoginNew';
-import ChangePassword from './components/ChangePassword';
 import Sidebar from './components/Sidebar';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import './styles/Sidebar.css';
-import './App.css';
 
 // Admin pages
+import AdminConfirmedStudents from './pages/admin/ConfirmedStudents';
 import DashboardOverview from './pages/admin/DashboardOverview';
 import AdminEventManagement from './pages/admin/EventManagement';
 import AdminOpportunityManagement from './pages/admin/OpportunityManagement';
 import UserManagement from './pages/admin/UserManagement';
-import AdminConfirmedStudents from './pages/admin/ConfirmedStudents';
 
 // Student pages
-import StudentMyDashboard from './pages/student/MyDashboard';
 import BrowseEvents from './pages/student/BrowseEvents';
 import BrowseOpportunity from './pages/student/BrowseOpportunity';
 import StudentCalendarView from './pages/student/CalendarView';
 import EventHistory from './pages/student/EventHistory';
-import StudentProfileSettings from './pages/student/ProfileSettings';
+import StudentMyDashboard from './pages/student/MyDashboard';
 import StudentNotifications from './pages/student/Notifications';
+import StudentProfileSettings from './pages/student/ProfileSettings';
 
 // Head pages
-import DepartmentDashboard from './pages/head/DepartmentDashboard';
-import HeadEventManagement from './pages/head/EventManagement';
-import HeadOpportunityManagement from './pages/head/OpportunityManagement';
-import HeadNotifications from './pages/head/Notifications';
 import HeadCalendarView from './pages/head/CalendarView';
 import ConfirmedStudents from './pages/head/ConfirmedStudents';
+import DepartmentDashboard from './pages/head/DepartmentDashboard';
+import HeadEventManagement from './pages/head/EventManagement';
+import HeadNotifications from './pages/head/Notifications';
+import HeadOpportunityManagement from './pages/head/OpportunityManagement';
 
 // Employee pages
-import EmployeeMyDashboard from './pages/employee/MyDashboard';
-import EmployeeEventManagement from './pages/employee/EventManagement';
 import EmployeeCalendarView from './pages/employee/CalendarView';
-import EmployeeProfileSettings from './pages/employee/ProfileSettings';
-import EmployeeNotifications from './pages/employee/Notifications';
+import EmployeeEventManagement from './pages/employee/EventManagement';
+import EmployeeMyDashboard from './pages/employee/MyDashboard';
 import EmployeeOpportunityManagement from './pages/employee/OpportunityManagement';
+import EmployeeProfileSettings from './pages/employee/ProfileSettings';
 
 
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -107,16 +106,16 @@ const ProtectedLayout = () => {
           <Route path="/head/dashboard" element={<PrivateRoute allowedRoles={['head']}><DepartmentDashboard /></PrivateRoute>} />
           <Route path="/head/events" element={<PrivateRoute allowedRoles={['head']}><HeadEventManagement /></PrivateRoute>} />
           <Route path="/head/opportunities" element={<PrivateRoute allowedRoles={['head']}><HeadOpportunityManagement /></PrivateRoute>} />
-          <Route path="/head/notifications" element={<PrivateRoute allowedRoles={['head']}><HeadNotifications /></PrivateRoute>} />
+          
           <Route path="/head/calendar" element={<PrivateRoute allowedRoles={['head']}><HeadCalendarView /></PrivateRoute>} />
           <Route path="/head/confirmed-students" element={<PrivateRoute allowedRoles={['head']}><ConfirmedStudents /></PrivateRoute>} />
+          <Route path="/head/notifications" element={<PrivateRoute allowedRoles={['head']}><HeadNotifications /></PrivateRoute>} />
 
           {/* Employee Routes */}
           <Route path="/employee/dashboard" element={<PrivateRoute allowedRoles={['employee']}><EmployeeMyDashboard /></PrivateRoute>} />
           <Route path="/employee/events" element={<PrivateRoute allowedRoles={['employee']}><EmployeeEventManagement /></PrivateRoute>} />
           <Route path="/employee/calendar" element={<PrivateRoute allowedRoles={['employee']}><EmployeeCalendarView /></PrivateRoute>} />
           <Route path="/employee/profile" element={<PrivateRoute allowedRoles={['employee']}><EmployeeProfileSettings /></PrivateRoute>} />
-          <Route path="/employee/notifications" element={<PrivateRoute allowedRoles={['employee']}><EmployeeNotifications /></PrivateRoute>} />
           <Route path="/employee/opportunities" element={<PrivateRoute allowedRoles={['employee']}><EmployeeOpportunityManagement /></PrivateRoute>} />
 
           {/* Default redirect to login if no other route matches */}
