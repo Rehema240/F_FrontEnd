@@ -3,7 +3,6 @@ import Swal from 'sweetalert2';
 import DebugPanel from '../../components/DebugPanel';
 import studentService from '../../services/studentService';
 import '../../styles/StudentComponents.css';
-import { isValidUUID, normalizeUUID } from '../../utils/validation';
 
 // For debugging - display environment variables
 const API_URL = process.env.REACT_APP_API_URL;
@@ -122,62 +121,23 @@ const BrowseEvents = () => {
     
     setConfirming(selectedEvent.id);
     try {
-      // Get event ID from the selected event and ensure it's a valid UUID
-      let eventId = selectedEvent.id;
+      // Get event ID from the selected event
+      const eventId = selectedEvent.id;
       
-      // Log the event ID for debugging
-      console.log('Event ID type:', typeof eventId);
-      console.log('Event ID to confirm:', eventId);
-      console.log('Is valid UUID?', isValidUUID(eventId));
-      
-      // Try to normalize UUID if needed
-      if (!isValidUUID(eventId)) {
-        const normalizedId = normalizeUUID(eventId);
-        console.log('Normalized event ID:', normalizedId);
-        console.log('Is normalized ID a valid UUID?', isValidUUID(normalizedId));
-        
-        if (isValidUUID(normalizedId)) {
-          eventId = normalizedId;
-        } else {
-          console.warn('Could not normalize event ID to a valid UUID format');
-          // Continue with the original ID - the API will validate it
-        }
-      }
-      
-      // Create the payload exactly as the API expects it
-      // The API expects: { "note": "string", "event_id": "UUID", "status": "confirmed" }
+      // Create the payload exactly as the API expects it according to documentation:
+      // { "note": "string", "event_id": "UUID", "status": "confirmed" }
       const confirmationData = {
-        event_id: eventId,
-        status: 'confirmed'
+        event_id: eventId, 
+        status: "confirmed" // Use exactly "confirmed" string as per API spec
       };
       
-      // Only add the note if it's not empty
+      // Only add the note if it's not empty (note is optional)
       if (confirmationNote && confirmationNote.trim()) {
         confirmationData.note = confirmationNote.trim();
       }
       
       // Log for debugging
-      console.log('Sending confirmation data:', confirmationData);
-      
-      // If the event ID doesn't look like a valid UUID, warn the user but proceed
-      if (!isValidUUID(eventId)) {
-        console.warn('Warning: Event ID does not appear to be a valid UUID format');
-        
-        // Optionally show a warning to the user
-        const shouldProceed = await Swal.fire({
-          icon: 'warning',
-          title: 'Warning',
-          text: 'The event ID may not be in the correct format. Do you still want to try confirming?',
-          showCancelButton: true,
-          confirmButtonText: 'Yes, try anyway',
-          cancelButtonText: 'Cancel'
-        });
-        
-        if (shouldProceed.dismiss) {
-          setConfirming(null);
-          return;
-        }
-      }
+      console.log('Sending event confirmation request with payload:', confirmationData);
       
       const response = await studentService.createEventConfirmation(confirmationData);
       console.log('Confirmation response:', response.data);
@@ -241,10 +201,21 @@ const BrowseEvents = () => {
               const field = detail.loc && detail.loc.length > 1 ? detail.loc[detail.loc.length - 1] : 'unknown';
               return `${field}: ${detail.msg}`;
             });
-            errorMessage = `Validation errors:`;
+            errorMessage = `API Validation errors:`;
             errorDetail = errorDetails.join('; ');
+            
+            // Log for debugging
+            console.log('Detailed validation errors:');
+            details.forEach(detail => {
+              console.log(`- ${detail.loc}: ${detail.msg} (${detail.type})`);
+            });
+            
+            // If the error is about event_id format, provide a clearer message
+            if (errorDetail.includes('event_id') && errorDetail.includes('uuid')) {
+              errorDetail = 'The event ID must be a valid UUID format. Please try again or contact support.';
+            }
           } else {
-            errorMessage = `Error:`;
+            errorMessage = `API Error:`;
             errorDetail = err.response.data.detail;
           }
         }
@@ -287,7 +258,7 @@ const BrowseEvents = () => {
       
       Swal.fire({
         icon: 'error',
-        title: `Error (${err.response ? err.response.status : 'Unknown'})`,
+        title: 'Could Not Confirm Event',
         text: errorMessage,
         ...(errorDetail && { footer: errorDetail })
       });

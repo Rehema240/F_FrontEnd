@@ -1,4 +1,3 @@
-import { isValidUUID, normalizeUUID } from '../utils/validation';
 import axios from './axiosConfig';
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -51,36 +50,16 @@ const createEventConfirmation = (data) => {
   // Log request attempt with full details for debugging
   console.log('=== EVENT CONFIRMATION DEBUG ===');
   console.log('Raw input data:', data);
-  console.log('event_id type:', typeof data.event_id);
-  console.log('event_id value:', data.event_id);
   
-  // Try to ensure the event_id is a valid UUID
-  let eventId = data.event_id;
-  
-  // Check if it's a valid UUID format
-  if (!isValidUUID(eventId)) {
-    console.warn('Warning: Event ID is not in valid UUID format, attempting to normalize...');
-    
-    // Try to normalize to a proper UUID format
-    const normalizedId = normalizeUUID(eventId);
-    console.log('Normalized ID:', normalizedId);
-    console.log('Is normalized ID a valid UUID?', isValidUUID(normalizedId));
-    
-    if (isValidUUID(normalizedId)) {
-      eventId = normalizedId;
-      console.log('Successfully normalized event ID to valid UUID format');
-    } else {
-      console.warn('Could not normalize to a valid UUID format, proceeding with original ID');
-    }
-  }
-  
-  // Create a clean payload object
+  // Create a clean payload object that EXACTLY matches API expectations
+  // Based on API docs: /student/event_confirmations/
   const payload = {
-    event_id: eventId,
-    status: 'confirmed' // Default to 'confirmed' as per the API docs
+    event_id: data.event_id,
+    status: "confirmed" // Use exactly "confirmed" as per API spec
   };
   
   // Only add note if it exists and is not empty
+  // Note is optional according to API schema
   if (data.note && data.note.trim() !== '') {
     payload.note = data.note.trim();
   }
@@ -114,7 +93,14 @@ const createEventConfirmation = (data) => {
         
         // Specific handling for common errors
         if (error.response.status === 422) {
-          console.error('Validation error - check that event_id is a valid UUID and all fields match API expectations');
+          console.error('Validation error - check payload format:');
+          console.error('Required format: { "note": "string", "event_id": "UUID", "status": "confirmed" }');
+          console.error('Sent payload:', payload);
+          
+          // Print out detailed validation errors if available
+          if (error.response.data?.detail) {
+            console.error('Validation details:', error.response.data.detail);
+          }
         } else if (error.response.status === 409) {
           console.warn('Conflict error - the event might already be confirmed');
         } else if (error.response.status === 403) {
