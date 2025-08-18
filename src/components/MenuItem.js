@@ -1,8 +1,11 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
 import { Home } from 'lucide-react'; // Example icon
+import { NavLink } from 'react-router-dom';
+import NotificationBadge from './NotificationBadge';
 
 const MenuItem = ({ item, isCollapsed }) => {
+  // Determine if this is the notifications menu item
+  const isNotificationsItem = item.path && item.path.includes('/notifications');
+  
   return (
     <NavLink
       to={item.path}
@@ -10,8 +13,15 @@ const MenuItem = ({ item, isCollapsed }) => {
         `menu-item ${isActive ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}`
       }
     >
-      <Home size={20} />
-      {!isCollapsed && <span className="menu-item-name">{item.name}</span>}
+      <div className="menu-item-icon-container">
+        <Home size={20} />
+        {isNotificationsItem && <NotificationBadge />}
+      </div>
+      {!isCollapsed && (
+        <span className="menu-item-name">
+          {item.name}
+        </span>
+      )}
     </NavLink>
   );
 };

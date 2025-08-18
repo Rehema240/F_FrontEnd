@@ -145,8 +145,18 @@ const debugEventConfirmation = (eventId) => {
   return axios.get(`${API_URL}/student/event_confirmations/debug/${eventId}`);
 };
 
-const getNotifications = (skip = 0, limit = 100) => {
-  return axios.get(`${API_URL}/student/notifications/`, { params: { skip, limit } });
+const getNotifications = (skip = 0, limit = 100, unreadOnly = false, notificationType = null) => {
+  const params = { 
+    skip, 
+    limit,
+    unread_only: unreadOnly
+  };
+  
+  if (notificationType) {
+    params.notification_type = notificationType;
+  }
+  
+  return axios.get(`${API_URL}/student/notifications/`, { params });
 };
 
 const getNotification = (notificationId) => {
@@ -155,6 +165,14 @@ const getNotification = (notificationId) => {
 
 const markNotificationAsRead = (notificationId) => {
   return axios.put(`${API_URL}/student/notifications/${notificationId}/read`);
+};
+
+const getUnreadNotificationCount = () => {
+  return axios.get(`${API_URL}/student/notifications/unread_count`);
+};
+
+const markAllNotificationsAsRead = () => {
+  return axios.put(`${API_URL}/student/notifications/mark_all_read`);
 };
 
 // Additional functions for updated components
@@ -198,6 +216,8 @@ const studentService = {
   getNotifications,
   getNotification,
   markNotificationAsRead,
+  getUnreadNotificationCount,
+  markAllNotificationsAsRead,
   
   // Additional exports
   getMyProfile,

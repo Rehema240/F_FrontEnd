@@ -23,19 +23,27 @@ const ProfileSettings = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await studentService.getMyProfile();
+        // Use getMe() instead of getMyProfile() to match the correct API endpoint
+        const response = await studentService.getMe();
+        console.log('Profile data:', response.data);
         setProfile(response.data);
+        
+        // Map API response fields to form fields
         setFormData({
-          name: response.data.name || '',
+          name: response.data.full_name || '',
           email: response.data.email || '',
           phone: response.data.phone || '',
-          program: response.data.program || '',
+          program: response.data.department || '',
           batch: response.data.batch || '',
           bio: response.data.bio || ''
         });
       } catch (err) {
         setError('Failed to fetch profile data.');
-        console.error(err);
+        console.error('Error fetching profile:', err);
+        if (err.response) {
+          console.error('Response status:', err.response.status);
+          console.error('Response data:', err.response.data);
+        }
       } finally {
         setLoading(false);
       }
@@ -56,12 +64,26 @@ const ProfileSettings = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await studentService.updateProfile(formData);
+      // Prepare data in the format expected by the API
+      const updateData = {
+        full_name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        bio: formData.bio
+        // Note: We don't include department/batch as they're likely read-only fields managed by admin
+      };
+      
+      // Use updateMe instead of updateProfile to match correct API endpoint
+      await studentService.updateMe(updateData);
       setSuccessMessage('Profile updated successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setError('Failed to update profile.');
-      console.error(err);
+      console.error('Error updating profile:', err);
+      if (err.response) {
+        console.error('Response status:', err.response.status);
+        console.error('Response data:', err.response.data);
+      }
     } finally {
       setLoading(false);
     }
@@ -87,11 +109,12 @@ const ProfileSettings = () => {
         <div className="card-body">
           <div className="profile-header">
             <div className="profile-avatar">
-              {currentUser?.name?.charAt(0) || 'U'}
+              {profile?.full_name?.charAt(0) || currentUser?.name?.charAt(0) || 'U'}
             </div>
             <div className="profile-info">
-              <h2>{currentUser?.name || 'Student'}</h2>
-              <p>{currentUser?.email || ''}</p>
+              <h2>{profile?.full_name || currentUser?.name || 'Student'}</h2>
+              <p>{profile?.email || currentUser?.email || ''}</p>
+              <p className="profile-role">{profile?.role || 'Student'} • {profile?.department || 'Department'}</p>
             </div>
           </div>
           
@@ -123,21 +146,50 @@ const ProfileSettings = () => {
               </div>
             </div>
             
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="phone">Phone</label>
-                <input
-                  type="text"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="form-control"
-                />
+            {profile?.id && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="userId">Account ID</label>
+                  <input
+                    type="text"
+                    id="userId"
+                    value={profile.id}
+                    className="form-control"
+                    readOnly
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="username">Username</label>
+                  <input
+                    type="text"
+                    id="username"
+                    value={profile.username || ''}
+                    className="form-control"
+                    readOnly
+                  />
+                </div>
               </div>
+            )}
+            
+            <div className="form-row">
+              {/* Only show phone field if the API schema supports it */}
+              {(profile?.phone !== undefined || formData.phone) && (
+                <div className="form-group">
+                  <label htmlFor="phone">Phone</label>
+                  <input
+                    type="text"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="form-control"
+                  />
+                </div>
+              )}
               
               <div className="form-group">
-                <label htmlFor="program">Program</label>
+                <label htmlFor="program">Department</label>
                 <input
                   type="text"
                   id="program"
@@ -151,31 +203,63 @@ const ProfileSettings = () => {
             </div>
             
             <div className="form-row">
+              {/* Only show batch field if the API schema supports it */}
+              {(profile?.batch !== undefined || formData.batch) && (
+                <div className="form-group">
+                  <label htmlFor="batch">Batch</label>
+                  <input
+                    type="text"
+                    id="batch"
+                    name="batch"
+                    value={formData.batch}
+                    onChange={handleChange}
+                    className="form-control"
+                    readOnly
+                  />
+                </div>
+              )}
+              
               <div className="form-group">
-                <label htmlFor="batch">Batch</label>
+                <label htmlFor="role">Role</label>
                 <input
                   type="text"
-                  id="batch"
-                  name="batch"
-                  value={formData.batch}
-                  onChange={handleChange}
+                  id="role"
+                  name="role"
+                  value={profile?.role || ''}
                   className="form-control"
                   readOnly
                 />
               </div>
+              
+              {profile?.is_active !== undefined && (
+                <div className="form-group">
+                  <label htmlFor="status">Account Status</label>
+                  <input
+                    type="text"
+                    id="status"
+                    name="status"
+                    value={profile?.is_active ? 'Active' : 'Inactive'}
+                    className="form-control"
+                    readOnly
+                  />
+                </div>
+              )}
             </div>
             
-            <div className="form-group">
-              <label htmlFor="bio">Bio</label>
-              <textarea
-                id="bio"
-                name="bio"
-                value={formData.bio}
-                onChange={handleChange}
-                className="form-control"
-                rows="4"
-              ></textarea>
-            </div>
+            {/* Only show bio field if the API schema supports it */}
+            {(profile?.bio !== undefined || formData.bio) && (
+              <div className="form-group">
+                <label htmlFor="bio">Bio</label>
+                <textarea
+                  id="bio"
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleChange}
+                  className="form-control"
+                  rows="4"
+                ></textarea>
+              </div>
+            )}
             
             <div className="button-group">
               <button type="submit" className="btn btn-primary" disabled={loading}>

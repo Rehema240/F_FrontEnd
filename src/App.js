@@ -6,6 +6,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import LoginNew from './components/LoginNew';
 import Sidebar from './components/Sidebar';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import './styles/Sidebar.css';
 
 // Admin pages
@@ -145,7 +146,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <NotificationProvider>
+          <AppContent />
+        </NotificationProvider>
       </AuthProvider>
     </Router>
   );
